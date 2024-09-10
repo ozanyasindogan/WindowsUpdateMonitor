@@ -2,7 +2,7 @@
 
 namespace WindowsUpdateMonitor.ConsoleClient;
 
-public class Program
+class Program
 {
     static void Main(string[] args)
     {
@@ -10,8 +10,8 @@ public class Program
         Console.WriteLine("-----------------------------------");
 
         // Create an instance of the Windows Update Session
-        UpdateSession updateSession = new UpdateSession();
-        IUpdateSearcher updateSearcher = updateSession.CreateUpdateSearcher();
+        var updateSession = new UpdateSession();
+        var updateSearcher = updateSession.CreateUpdateSearcher();
 
         // Display information about available updates
         DisplayAvailableUpdates(updateSearcher);
@@ -32,7 +32,7 @@ public class Program
         Console.WriteLine("\nChecking for Available Updates...");
         try
         {
-            ISearchResult searchResult = updateSearcher.Search("IsInstalled=0");
+            var searchResult = updateSearcher.Search("IsInstalled=0");
             DisplayUpdateCollection("Available Updates", searchResult.Updates);
         }
         catch (Exception ex)
@@ -47,7 +47,7 @@ public class Program
         Console.WriteLine("\nChecking for Installed Updates...");
         try
         {
-            ISearchResult searchResult = updateSearcher.Search("IsInstalled=1");
+            var searchResult = updateSearcher.Search("IsInstalled=1");
             DisplayUpdateCollection("Installed Updates", searchResult.Updates);
         }
         catch (Exception ex)
@@ -62,7 +62,7 @@ public class Program
         Console.WriteLine("\nChecking for Hidden Updates...");
         try
         {
-            ISearchResult searchResult = updateSearcher.Search("IsHidden=1");
+            var searchResult = updateSearcher.Search("IsHidden=1");
             DisplayUpdateCollection("Hidden Updates", searchResult.Updates);
         }
         catch (Exception ex)
@@ -87,9 +87,9 @@ public class Program
             Console.WriteLine($"Update {i + 1}:");
             Console.WriteLine($"- Title: {update.Title}");
             Console.WriteLine($"- Description: {update.Description}");
-            Console.WriteLine($"- KB Article IDs: {string.Join(", ", update.KBArticleIDs)}");
+            Console.WriteLine($"- KB Article IDs: {GetCommaSeparatedString(update.KBArticleIDs)}");
             Console.WriteLine($"- Categories: {GetCategories(update)}");
-            Console.WriteLine($"- More Info URL: {update.MoreInfoUrls}");
+            Console.WriteLine($"- More Info URL: {GetCommaSeparatedString(update.MoreInfoUrls)}");
             Console.WriteLine($"- Support URL: {update.SupportUrl}");
             Console.WriteLine($"- Is Mandatory: {update.IsMandatory}");
             Console.WriteLine($"- Is Downloaded: {update.IsDownloaded}");
@@ -108,7 +108,26 @@ public class Program
         {
             categoryNames += category.Name + ", ";
         }
-
         return categoryNames.TrimEnd(',', ' ');
+    }
+
+    // Helper method to get a comma-separated string from a collection
+    private static string GetCommaSeparatedString(object? collection)
+    {
+        if (collection is null)
+            return "";
+
+        var items = new List<string?>();
+
+        // Handle collections that implement IEnumerable
+        if (collection is System.Collections.IEnumerable enumerable)
+        {
+            foreach (var item in enumerable)
+            {
+                items.Add(item.ToString());
+            }
+        }
+
+        return string.Join(", ", items);
     }
 }
